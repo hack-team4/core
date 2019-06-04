@@ -1,0 +1,1 @@
+variable "google_project_id" { type = "string" description = "" default = "hackathon-242612"}

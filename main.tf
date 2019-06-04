@@ -1,6 +1,6 @@
 provider "google" {
   credentials = "${file("~/terraform.json")}"
-  project     = "hackathon-242612"
+  project     = "${var.google_project_id}"
   region      = "us-east1"
 }
 
