@@ -1,5 +1,5 @@
 provider "google" {
-  credentials = "${file("~/terraform.json")}"
+  credentials = "${file("~/work/kopCluster/sa_key.json")}"
   project     = "${var.google_project_id}"
   region      = "us-east1"
 }

@@ -1,0 +1,103 @@
+apiVersion: kops/v1alpha2
+kind: Cluster
+metadata:
+  name: {{ .cluster }}
+spec:
+  api:
+    loadBalancer:
+      type: Public
+  authorization:
+    rbac: {}
+  kubeAPIServer:
+    oidcIssuerURL: {{ .oidc.issuerURL }}
+    oidcClientID: {{ .oidc.clientID }}
+    oidcUsernameClaim: {{ .oidc.usernameClaim }}
+  channel: stable
+  cloudProvider: gce
+  configBase: gs://{{ .configBucket }}/{{ .cluster }}
+  etcdClusters:
+  - etcdMembers:
+  {{ range .masterzones }}
+    - instanceGroup: master-{{ . }}
+      name: {{ . | replace $.region "" }} {{/* converts eu-west-1a to a */}}
+  {{ end }}
+    name: main
+  - etcdMembers:
+  {{ range .masterzones }}
+    - instanceGroup: master-{{ . }}
+      name: {{ . | replace $.region "" }} {{/* converts eu-west-1a to a */}}
+  {{ end }}
+    name: events
+  iam:
+    allowContainerRegistry: true
+    legacy: false
+  kubelet:
+    anonymousAuth: false
+  kubeDNS:
+    provider: CoreDNS
+  kubernetesApiAccess:
+  - 0.0.0.0/0
+  kubernetesVersion: {{ .k8sVersion }}
+  masterInternalName: api.internal.{{ .cluster }}
+  masterPublicName: api.{{ .cluster }}
+  networkID: {{ .networkID }}
+  networking:
+    kubenet: {}
+  nonMasqueradeCIDR: 100.64.0.0/10
+  project: {{ .projectID }}
+  sshAccess:
+  - 0.0.0.0/0
+  subnets:
+  - name: {{ .region }}
+    region: {{ .region }}
+    type: Public
+  topology:
+    dns:
+      type: Public
+    masters: public
+    nodes: public
+---
+# One MASTER Per Zone
+
+{{ range .masterzones }}
+apiVersion: kops/v1alpha2
+kind: InstanceGroup
+metadata:
+  labels:
+    kops.k8s.io/cluster: {{ $.cluster }}
+  name: master-{{ . }}
+spec:
+  machineType: {{ $.masterType }}
+  maxSize: 1
+  minSize: 1
+  nodeLabels:
+    kops.k8s.io/instancegroup: master-{{ . }}
+  role: Master
+  subnets:
+  - {{ $.region }}
+  zones:
+  - {{ . }}
+---
+  {{end}}
+
+# Nodes
+
+apiVersion: kops/v1alpha2
+kind: InstanceGroup
+metadata:
+  labels:
+    kops.k8s.io/cluster: {{ .cluster }}
+  name: nodes
+spec:
+  machineType: {{ .nodeType }}
+  maxSize: {{ .nodeNum }}
+  minSize: 1
+  nodeLabels:
+    kops.k8s.io/instancegroup: nodes
+  role: Node
+  subnets:
+  - {{ .region }}
+  zones:
+  {{ range .zones }}
+  - {{ . }}
+  {{ end }}

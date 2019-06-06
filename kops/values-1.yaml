@@ -1,0 +1,19 @@
+configBucket: hack-clusters
+k8sVersion: 1.12.1
+region: us-west1
+masterzones:
+  - us-west1-b
+zones:
+  - us-west1-a
+  - us-west1-c
+  - us-west1-b
+masterType: n1-standard-1
+nodeType: n1-standard-1
+networkID: newone
+projectID: hackathon-242612
+nodeNum: 3
+cluster: networkingtest.k8s.local
+oidc:
+  issuerURL: https://accounts.google.com
+  clientID: 355259879917-0l3pe8et9dhqc86sstk8jcia803bg0oc.apps.googleusercontent.com
+  usernameClaim: email
